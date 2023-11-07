@@ -1,6 +1,18 @@
 
+
+//PLAYER CREATE OBJECT
+function createPlayer(name, symbol)
+{
+    const playerId = name;
+    const sign = symbol;
+    const getName = () => playerId;
+    const getSign = () => sign;
+    return {getName, getSign};
+}
+
+
 //BOARD OBJECT
-function createBoard ()
+const boardController = (function createBoard()
 {
     //BOARD
     let board = ["", "", "", 
@@ -36,51 +48,34 @@ function createBoard ()
         count = 0;
     }
     return {getBoard, getSquareValue, setMarker, getCount, clearBoard};
-}
+})();
 
-
-//PLAYER CREATE OBJECT
-function createPlayer (symbol)
+const gameController = (function game()
 {
-    const sign = symbol;
-    const getSign = () => sign;
-    return {getSign};
-}
-
-function game ()
-{
-    const p1 = createPlayer("X");
-    const p2 = createPlayer("O");
-    let board = createBoard();
+    const p1 = createPlayer("Player 1", "X");
+    const p2 = createPlayer("Player 2","O");
     let p1Turn = true;
-    let gameOver = false;
-
-    //CACHE DOM
-    let squares = Array.from(document.querySelectorAll(".square"));
-    const restart = document.querySelector(".restart");
-
     const checkWin = function ()
     {
         if(hasWon(p1)) {
-            alert("Player1 Won!");
+            displayController.displayWin(p1.getName());
         }
         else if(hasWon(p2)) 
         {
-            alert("Player2 Won!");
+            displayController.displayWin(p2.getName());
         }
-        else if(board.getCount() === 9) 
+        else if(boardController.getCount() === 9) 
         {
-            alert("Game is TIED!");
+            displayController.displayWin();
         }
-
     }
 
     const hasWon = function (player)
     {
-        let gboard = board.getBoard()
+        let gboard = boardController.getBoard()
         let size = gboard.length;
         let sign = player.getSign();
-        let msquare = board.getSquareValue();
+        let msquare = boardController.getSquareValue();
         for(let i = 0; i < size; i++)
         {
             for(let j = 0; j < size; j++)
@@ -106,10 +101,10 @@ function game ()
     const playGame = function (index)
     {
         if(p1Turn)
-        {   if(board.getBoard()[index] === "")
+        {   if(boardController.getBoard()[index] === "")
             {
                 this.innerText = p1.getSign();
-                board.setMarker(p1, index);
+                boardController.setMarker(p1, index);
                 p1Turn = false;
             }
             else
@@ -119,10 +114,10 @@ function game ()
         }
         else
         {
-            if(board.getBoard()[index] === "")
+            if(boardController.getBoard()[index] === "")
             {
                 this.innerText = p2.getSign();
-                board.setMarker(p2, index);
+                boardController.setMarker(p2, index);
                 p1Turn = true;
             }
             else
@@ -131,28 +126,63 @@ function game ()
             }
         }
         checkWin();
-        // console.log(board.getBoard());
     }
-    
+    return {playGame};
+})();
+
+
+const displayController = (function dom()
+{
+    //CACHE DOM
+    let squares = Array.from(document.querySelectorAll(".square"));
+    const restart = document.querySelector(".restart");
+    const modal = document.querySelector(".modal");
+    const gameText = document.querySelector("#gameText");
+
+    const clearDisplay = function ()
+    {
+        squares.forEach((square) =>
+        {
+            square.innerText = "";
+        });
+    }
+
+    const displayWin = function (arg)
+    {
+        if(modal.classList.contains("non-visible"))
+        {
+                modal.classList.replace("non-visible", "visible");
+                if(typeof arg === "string")
+                {
+                    gameText.innerText = arg + " WINS!";
+                }
+                else
+                    gameText.innerText = "The game was a TIE!";
+        }
+    }
     //BIND EVENT LISTENERS
     squares.forEach((square) =>
     {
         let index = squares.indexOf(square);
         square.addEventListener("click", function()
-        {
-            playGame.bind(this)(index);
-        });
-    })
-
+        { 
+            gameController.playGame.bind(this)(index);
+        })
+    });
     restart.addEventListener("click", function()
     {
-        board.clearBoard();
-        squares.forEach((square) =>
-        {
-            square.innerText = "";
-        });
+        boardController.clearBoard();
+        clearDisplay();
     });
-}
 
-
-let g = game();
+    window.addEventListener("click", function(e)
+    {
+        if(e.target === modal)
+        {
+            modal.classList.replace("visible", "non-visible");
+            clearDisplay();
+            boardController.clearBoard();
+        }
+    });
+    return{displayWin};
+})();
