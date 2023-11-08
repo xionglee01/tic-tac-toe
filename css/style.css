@@ -55,7 +55,7 @@ body
     transition: 0.2s;
 }
 
-.restart
+.btn
 {
     height: 50px;
     width: 100px;
@@ -66,7 +66,7 @@ body
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
-.restart:hover
+.btn:hover
 {
     background-color: #cacaca;
     transition: 0.2s;
@@ -109,4 +109,13 @@ body
 .non-visible
 {
     visibility: hidden;
+    position: absolute;
+}
+
+.container
+{
+    display: flex;
+    flex-direction: column;
+    gap: 25px;
+    flex-grow: 2;
 }

@@ -3,11 +3,12 @@
 //PLAYER CREATE OBJECT
 function createPlayer(name, symbol)
 {
-    const playerId = name;
+    let playerId = name;
     const sign = symbol;
     const getName = () => playerId;
+    const setName = (newName) => playerId = newName; 
     const getSign = () => sign;
-    return {getName, getSign};
+    return {getName, setName, getSign};
 }
 
 
@@ -55,6 +56,27 @@ const gameController = (function game()
     const p1 = createPlayer("Player 1", "X");
     const p2 = createPlayer("Player 2","O");
     let p1Turn = true;
+
+    const setPlayerName = function(player1, player2)
+    {
+        if(player1 === "")
+        {
+            player1 = "Player 1";
+        }
+        if(player2 === "")
+        {
+            player2 = "Player 2";
+        }
+        p1.setName(player1);
+        p2.setName(player2);
+    }
+
+    const getPlayerName = function()
+    {
+        return {0:p1.getName(), 1:p2.getName()};
+    }
+
+    const currentTurn = () => p1Turn;
     const checkWin = function ()
     {
         if(hasWon(p1)) {
@@ -98,6 +120,11 @@ const gameController = (function game()
         return false;
     }
 
+    const resetGame = function ()
+    {
+        p1Turn = true;
+    }
+
     const playGame = function (index)
     {
         if(p1Turn)
@@ -127,7 +154,8 @@ const gameController = (function game()
         }
         checkWin();
     }
-    return {playGame};
+
+    return {playGame, resetGame, setPlayerName, getPlayerName, currentTurn};
 })();
 
 
@@ -138,6 +166,14 @@ const displayController = (function dom()
     const restart = document.querySelector(".restart");
     const modal = document.querySelector(".modal");
     const gameText = document.querySelector("#gameText");
+
+    const board = document.querySelector("#board");
+
+    const player1 = document.querySelector("#player1");
+    const player2 = document.querySelector("#player2");
+    const startBtn = document.querySelector("#start");
+    const menu = document.querySelector("#menu");
+    const showTurn = document.querySelector("#turn");
 
     const clearDisplay = function ()
     {
@@ -160,6 +196,37 @@ const displayController = (function dom()
                     gameText.innerText = "The game was a TIE!";
         }
     }
+
+    const showcurrentTurn = function()
+    {
+        let names = gameController.getPlayerName();
+        if(gameController.currentTurn())
+        {
+            showTurn.innerText = names[0] + " turn";
+        }
+        else
+        {
+            showTurn.innerText = names[1] + " turn";
+        }
+    }
+
+    const startGame = function ()
+    {
+        board.classList.replace("non-visible", "visible");
+        showTurn.classList.replace("non-visible", "visible");
+        restart.classList.replace("non-visible", "visible");
+        menu.classList.replace("visible", "non-visible");
+        gameController.setPlayerName(player1.value, player2.value);
+        showcurrentTurn();
+    }
+    const reset = function()
+    {
+        gameController.resetGame();
+        boardController.clearBoard();
+        clearDisplay();
+        showcurrentTurn();
+    }
+
     //BIND EVENT LISTENERS
     squares.forEach((square) =>
     {
@@ -167,12 +234,19 @@ const displayController = (function dom()
         square.addEventListener("click", function()
         { 
             gameController.playGame.bind(this)(index);
+            showcurrentTurn();
         })
     });
+
+
     restart.addEventListener("click", function()
     {
-        boardController.clearBoard();
-        clearDisplay();
+        reset();
+    });
+
+    startBtn.addEventListener("click", function()
+    {
+        startGame();
     });
 
     window.addEventListener("click", function(e)
@@ -180,9 +254,10 @@ const displayController = (function dom()
         if(e.target === modal)
         {
             modal.classList.replace("visible", "non-visible");
-            clearDisplay();
-            boardController.clearBoard();
+            reset();
         }
     });
-    return{displayWin};
+
+    //ACCESSIBLE FUNCTIONS 
+    return{displayWin, showcurrentTurn};
 })();
